@@ -2,7 +2,7 @@
 
 # Bepaal het pad naar de Conky-map
 CONKY_DIR=$(dirname "$(readlink -f "$0")")
-
+rm resources/cache/*
 # Controleer of Conky al draait en stop het
 if pidof conky > /dev/null; then
     killall conky
