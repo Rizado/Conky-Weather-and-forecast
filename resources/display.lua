@@ -34,13 +34,14 @@ local is_animating = false
 local animation_frame = 0
 local animation_duration = 3
 local previous_label_index = 1
+
 -- Function to load weather data from a file
 local function read_weather_data()
     local weather_data = {}
     local file_path = script_dir .. "/cache/weather_data.txt"
     local file = io.open(file_path, "r")
     if not file then
-        return {CITY = "N/A", LANG = "en", WEATHER_DESC = "N/A"}
+        return {CITY = "N/A", LANG = "en", WEATHER_DESC = "N/A", ICON_SET = "default"}
     end
     for line in file:lines() do
         local key, value = line:match("([^=]+)=([^=]+)")
@@ -50,6 +51,50 @@ local function read_weather_data()
     end
     file:close()
     return weather_data
+end
+
+-- Function to get the last modified time of weather_data.txt
+local function get_last_update_time(lang)
+    local file_path = script_dir .. "/cache/weather_data.txt"
+    local cmd = "stat -c %Y " .. file_path .. " 2>/dev/null || echo 0"
+    local handle = io.popen(cmd)
+    local timestamp = handle:read("*all")
+    handle:close()
+    timestamp = tonumber(timestamp) or 0
+    if timestamp == 0 then
+        return "N/A"
+    end
+    local current_time = os.time()
+    local seconds_ago = current_time - timestamp
+    local translations = {
+        nl = { just_now = "zojuist", minute = "minuut", minutes = "minuten", hour = "uur", hours = "uren", ago = "geleden" },
+        en = { just_now = "just now", minute = "minute", minutes = "minutes", hour = "hour", hours = "hours", ago = "ago" },
+        fr = { just_now = "à l'instant", minute = "minute", minutes = "minutes", hour = "heure", hours = "heures", ago = "il y a" },
+        es = { just_now = "ahora mismo", minute = "minuto", minutes = "minutos", hour = "hora", hours = "horas", ago = "hace" },
+        de = { just_now = "gerade eben", minute = "Minute", minutes = "Minuten", hour = "Stunde", hours = "Stunden", ago = "vor" }
+    }
+    local t = translations[lang] or translations.en
+    if seconds_ago < 60 then
+        return t.just_now
+    elseif seconds_ago < 3600 then
+        local minutes = math.floor(seconds_ago / 60)
+        return minutes .. " " .. (minutes == 1 and t.minute or t.minutes) .. " " .. t.ago
+    else
+        local hours = math.floor(seconds_ago / 3600)
+        return hours .. " " .. (hours == 1 and t.hour or t.hours) .. " " .. t.ago
+    end
+end
+
+-- Function to get translated "Last Update" text
+local function get_last_update_label(lang)
+    local translations = {
+        nl = "Laatste update",
+        en = "Last Update",
+        fr = "Dernière mise à jour",
+        es = "Última actualización",
+        de = "Letzte Aktualisierung"
+    }
+    return translations[lang] or translations.en
 end
 
 -- Language-based label translations and data pairs, with Min and Max combined
@@ -100,6 +145,7 @@ local function get_label_pairs(lang, weather_data)
     end
     return labels
 end
+
 -- Function to calculate text width for centering
 local function get_text_width(cr, text, font, size)
     cairo_select_font_face(cr, font, CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL)
@@ -131,12 +177,13 @@ local function draw_image(cr, path, x, y, width, height)
         cairo_surface_destroy(image)
     end
 end
+
 -- Main function to draw the weather display
 function conky_draw_weather()
     if conky_window == nil then return end
 
-     -- Run initial fetch at startup
-     if last_fetch_time == 0 then
+    -- Run initial fetch at startup
+    if last_fetch_time == 0 then
         local cmd = FETCH_SCRIPT
         if FORCE_FETCH then
             cmd = cmd .. " --force"
@@ -162,6 +209,7 @@ function conky_draw_weather()
     local city = weather_data.CITY or "Unknown"
     local lang = weather_data.LANG or "en"
     local weather_desc = weather_data.WEATHER_DESC or "No description"
+    local icon_set = weather_data.ICON_SET or "default"
 
     -- Get label-value pairs for cycling
     local label_pairs = get_label_pairs(lang, weather_data)
@@ -171,9 +219,13 @@ function conky_draw_weather()
                                          conky_window.width, conky_window.height)
     local cr = cairo_create(cs)
 
-    -- Draw weather icon
+    -- Draw weather icon based on ICON_SET
     local weather_icon_path = script_dir .. "/cache/weathericon.png"
-    draw_image(cr, weather_icon_path, 10, 10, 120, 120)
+    if icon_set == "Light-vclouds" then
+        draw_image(cr, weather_icon_path, 0, 0, 150, 150)
+    else
+        draw_image(cr, weather_icon_path, 10, 10, 120, 120)
+    end
 
     -- Draw centered city name
     local city_font = "ChopinScript"
@@ -191,11 +243,22 @@ function conky_draw_weather()
     local desc_x = (conky_window.width - desc_width) / 2
     draw_text(cr, weather_desc, desc_x, conky_window.height - 134, desc_font, desc_size, desc_color)
 
--- Draw 5-day forecast from forecast.lua, centered over Conky width
-local forecast = require(script_dir .. "/forecast")
-local forecast_width = 360 -- 5 icons (40px) + 4 gaps (40px)
-local forecast_x = (conky_window.width - forecast_width) / 2
-forecast.draw_forecast_block(cr, forecast_x, conky_window.height - 70)
+    -- Draw last update time
+    local last_update_label = get_last_update_label(lang)
+    local last_update_time = get_last_update_time(lang)
+    local last_update_text = last_update_label .. ": " .. last_update_time
+    local last_update_font = "Dejavu Serif"
+    local last_update_size = 12
+    local last_update_color = {1, 0.66, 0, 1}
+    local last_update_width = get_text_width(cr, last_update_text, last_update_font, last_update_size)
+    local last_update_x = conky_window.width - last_update_width - 35
+    draw_text(cr, last_update_text, last_update_x, 25, last_update_font, last_update_size, last_update_color)
+
+    -- Draw 5-day forecast from forecast.lua, centered over Conky width
+    local forecast = require(script_dir .. "/forecast")
+    local forecast_width = 360 -- 5 icons (40px) + 4 gaps (40px)
+    local forecast_x = (conky_window.width - forecast_width) / 2
+    forecast.draw_forecast_block(cr, forecast_x, conky_window.height - 70)
 
     -- Label cycling and animation logic
     frame_count = frame_count + 1

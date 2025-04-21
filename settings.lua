@@ -56,7 +56,7 @@ UNITS = "metric"
     --        return { humidity = "Luftfeuchtigkeit", wind_speed = "Windgeschwindigkeit" }
     -- 4. Replace "de" with your language code and update the translations.
     -- 5. Save and reload Conky to apply changes.
-LANG = "nl"
+LANG = "en"
 
     -- border_COLOR: Defines the gradient border for the Conky widget.
     -- Format: "start_angle,color1,opacity1,midpoint,color2,opacity2,steps,color3,opacity3"

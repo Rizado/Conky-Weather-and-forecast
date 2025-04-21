@@ -12,19 +12,26 @@ SCRIPT_DIR=$(cd "$(dirname "$0")"; pwd)
 CACHE_DIR="$SCRIPT_DIR/cache"
 WEATHER_DATA="$CACHE_DIR/weather_data.txt"
 FORECAST_DATA="$CACHE_DIR/forecast_data.txt"
+SETTINGS_FILE="$SCRIPT_DIR/../settings.lua"  # Adjusted to point to parent directory
 
 # Ensure cache directory exists
 mkdir -p "$CACHE_DIR"
 
-# Check if cache is still valid
-if [ -f "$WEATHER_DATA" ]; then
+# Check if --force flag is provided
+FORCE=false
+if [ "$1" = "--force" ]; then
+    FORCE=true
+fi
+
+# Check if cache is still valid, unless --force is used or settings.lua has changed
+if [ "$FORCE" = "false" ] && [ -f "$WEATHER_DATA" ] && [ -f "$SETTINGS_FILE" ]; then
     CURRENT_TIME=$(date +%s)
     FILE_TIME=$(stat -c %Y "$WEATHER_DATA" 2>/dev/null || date -r "$WEATHER_DATA" +%s 2>/dev/null)
+    SETTINGS_TIME=$(stat -c %Y "$SETTINGS_FILE" 2>/dev/null || date -r "$SETTINGS_FILE" +%s 2>/dev/null)
     AGE=$((CURRENT_TIME - FILE_TIME))
 
-    if [ "$AGE" -lt "$CACHE_TIMEOUT" ]; then
-        ((AGE /= 60))  # Divide AGE by 60 and store result
-        echo "Last update:${AGE}m ago" > $CACHE_DIR/last-update.txt # Print age in minutes
+    # Skip cache if settings.lua is newer than weather_data.txt
+    if [ "$SETTINGS_TIME" -le "$FILE_TIME" ] && [ "$AGE" -lt "$CACHE_TIMEOUT" ]; then
         exit 0
     fi
 fi
@@ -66,12 +73,23 @@ if ! echo "$FORECAST_RESPONSE" | jq -e '.cod // 0' | grep -qE '2[0-9][0-9]'; the
     exit 1
 fi
 
-# Function to translate weather descriptions
+# Function to change weather descriptions
 translate_weather() {
     local desc="$1"
     case "$desc" in
+        # Make changes here if needed, for example:
+        # "heavy rain")
+        #     echo "shitty weather"  # Translate "heavy rain" to "severe rain"
+        #     ;;
+
         "zeer lichte bewolking")
-            echo "lichte bewolking"  # Translate "very light clouds" to "light clouds"
+            echo "lichte bewolking"
+            ;;
+        "lichte motregen")
+            echo "motregen"
+            ;;
+        "lichte motregen/regen")
+            echo "motregen/regen"
             ;;
         *)
             echo "$desc"  # Default: return the original description unchanged
@@ -118,12 +136,14 @@ fi
 cat <<EOF > "$WEATHER_DATA"
 CITY=$CITY
 LANG=$LANG
+ICON_SET=$ICON_SET
 WEATHER_DESC=$WEATHER_DESC
 TEMP=$TEMP
 TEMP_MIN=$TEMP_MIN
 TEMP_MAX=$TEMP_MAX
 HUMIDITY=$HUMIDITY
 WIND_SPEED=$WIND_SPEED
+$WEATHER_RESPONSE
 EOF
 
 # Save forecast data as raw JSON for later processing (e.g. Lua)
