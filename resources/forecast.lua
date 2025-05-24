@@ -217,10 +217,20 @@ local function get_text_width(cr, text, font, size)
     return extents.width
 end
 
--- Draw text
+-- Function to draw text with specified properties and shadow
 local function draw_text(cr, text, x, y, font, size, color, alpha)
     cairo_select_font_face(cr, font, CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL)
     cairo_set_font_size(cr, size)
+
+    -- Draw shadow (offset and semi-transparent)
+    local shadow_offset_x = 2 -- Shadow offset in x-direction
+    local shadow_offset_y = 2 -- Shadow offset in y-direction
+    local shadow_color = {0, 0, 0, 0.5} -- Black with 50% opacity for shadow
+    cairo_set_source_rgba(cr, shadow_color[1], shadow_color[2], shadow_color[3], shadow_color[4])
+    cairo_move_to(cr, x + shadow_offset_x, y + shadow_offset_y)
+    cairo_show_text(cr, text)
+
+    -- Draw main text
     cairo_set_source_rgba(cr, color[1], color[2], color[3], alpha or color[4])
     cairo_move_to(cr, x, y)
     cairo_show_text(cr, text)

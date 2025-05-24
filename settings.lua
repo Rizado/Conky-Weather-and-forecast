@@ -11,7 +11,8 @@ function conky_vars()
     --   - Simply update the value below to one of the available options (e.g., "Light-vclouds").
     --   - Ensure the set exists in your weather-icons directory to avoid errors.
 ICON_SET = "Dark-SagiSan"
-DAY_NIGHT = false -- if "true" night icons wil be showen on forecast
+DAY_NIGHT = false -- if "true" night icons wil be shown on forecast
+force_theme = "" -- Set to "day" or "night" to force a theme, or leave empty ("") for automatic day/night switching based on sunrise/sunset.
 
     -- API_KEY: Your OpenWeatherMap API key.
     -- Recommended: Use the Weather Settings Updater GUI to set this value.
@@ -58,15 +59,15 @@ UNITS = "metric"
     -- 5. Save and reload Conky to apply changes.
 LANG = "en"
 
-    -- border_COLOR: Defines the gradient border for the Conky widget.
+   -- border_COLOR: Defines the gradient border for the Conky widget.
     -- Format: "start_angle,color1,opacity1,midpoint,color2,opacity2,steps,color3,opacity3"
     -- Example: "0,0x390056,1.00,0.5,0xff007f,1.00,1,0x390056,1.00" creates a purple-pink gradient.
-    border_COLOR = "0,0xaa00ff,1.00,0.5,0xe8b9ff,1.00,1,0xaa00ff,1.00"
+    border_COLOR = "0,0x003e00,1.00,0.5,0x03f404,1.00,1,0x003e00,1.00"
 
     -- bg_COLOR: Background color and opacity for the widget.
     -- Format: "color,opacity"
     -- Example: "0x1d1e28,0.75" sets a dark purple background with 75% opacity.
-    bg_COLOR = "0x000000,0.00"
+    bg_COLOR = "0x1C2526,0.9"
 
     ----- Don't change these lines below -----
     API_KEY = API_KEY ~= "OWM_API_KEY" and API_KEY or os.getenv("OWM_API_KEY") or "your_default_api_key_here"

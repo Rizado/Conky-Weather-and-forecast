@@ -1,6 +1,7 @@
 # Conky Weather Widget
 
 A lightweight and customizable weather widget for Conky, written in Lua. This widget fetches real-time weather data from OpenWeatherMap and displays it beautifully on your desktop.
+The weather description is animated with a scrolling effect. The background theme automatically switches between day and night modes, changing according to sunrise and sunset times.
 
 ## Weather Widget Preview
 
