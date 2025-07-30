@@ -71,7 +71,8 @@ local function get_last_update_time(lang)
         en = { just_now = "just now", minute = "minute", minutes = "minutes", hour = "hour", hours = "hours", ago = "ago" },
         fr = { just_now = "à l'instant", minute = "minute", minutes = "minutes", hour = "heure", hours = "heures", ago = "il y a" },
         es = { just_now = "ahora mismo", minute = "minuto", minutes = "minutos", hour = "hora", hours = "horas", ago = "hace" },
-        de = { just_now = "gerade eben", minute = "Minute", minutes = "Minuten", hour = "Stunde", hours = "Stunden", ago = "vor" }
+        de = { just_now = "gerade eben", minute = "Minute", minutes = "Minuten", hour = "Stunde", hours = "Stunden", ago = "vor" },
+        ru = { just_now = "только что", minute = "минуту", minutes = "минут", hour = "час", hours = "часов", ago = "назад" }
     }
     local t = translations[lang] or translations.en
     if seconds_ago < 60 then
@@ -92,7 +93,8 @@ local function get_last_update_label(lang)
         en = "Last Update",
         fr = "Dernière mise à jour",
         es = "Última actualización",
-        de = "Letzte Aktualisierung"
+        de = "Letzte Aktualisierung",
+        ru = "Последнее обновление"
     }
     return translations[lang] or translations.en
 end
@@ -134,6 +136,13 @@ local function get_label_pairs(lang, weather_data)
             {text = "Min: " .. (weather_data.TEMP_MIN or "N/A") .. " Max: " .. (weather_data.TEMP_MAX or "N/A")},
             {text = "Luftfeuchtigkeit: " .. (weather_data.HUMIDITY or "N/A") .. "%"},
             {text = "Windgeschwindigkeit: " .. (weather_data.WIND_SPEED or "N/A") .. " m/s"}
+        }
+    elseif lang == "ru" then
+        labels = {
+            {text = "Темп.: " .. (weather_data.TEMP or "н/д")},
+            {text = "Мин.: " .. (weather_data.TEMP_MIN or "н/д") .. " Макс.: " .. (weather_data.TEMP_MAX or "н/д")},
+            {text = "Влажность: " .. (weather_data.HUMIDITY or "н/д") .. "%"},
+            {text = "Скорость ветра: " .. (weather_data.WIND_SPEED or "н/д") .. " м/с"}
         }
     else
         labels = {
