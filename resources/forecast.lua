@@ -87,7 +87,8 @@ local DAY_ABBR = {
     nl = {"Zo", "Ma", "Di", "Wo", "Do", "Vr", "Za"},
     fr = {"Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"},
     de = {"So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"},
-    es = {"Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"}
+    es = {"Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"},
+    ru = {"Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"}
 }
 
 -- Read and parse forecast_data.txt
